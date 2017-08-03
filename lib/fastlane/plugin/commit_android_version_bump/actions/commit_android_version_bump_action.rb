@@ -26,8 +26,8 @@ module Fastlane
 
             UI.message("Found the following project path: #{build_folder_paths}")
             # too many projects found: error
-            if build_folder_paths.count > 1
-                UI.user_error!("Found multiple build.gradle projects in the current repository's working directory.")
+            if build_folder_paths.count == 0
+                UI.user_error!("Found no build.gradle projects in the current repository's working directory.")
             end
 
             build_folder_path = build_folder_paths.first
@@ -52,8 +52,7 @@ module Fastlane
         end
 
         # create our list of files that we expect to have changed, they should all be relative to the project root, which should be equal to the git workdir root
-        expected_changed_files = []
-        expected_changed_files << build_file_path
+        expected_changed_files = build_folder_paths
 
         # get the list of files that have actually changed in our git workdir
        git_dirty_files = Actions.sh("git -C #{repo_path.shellescape} diff --name-only HEAD").split("\n") + Actions.sh("git -C #{repo_path.shellescape} ls-files --other --exclude-standard").split("\n")
