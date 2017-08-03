@@ -14,7 +14,7 @@ module Fastlane
             absolute_path = File.expand_path(build_file_folder)
             build_file_path = build_file_folder+"/build.gradle"
             # find the repo root path
-            repo_path = Actions.sh("git -C #{absolute_path} rev-parse --show-toplevel").strip
+            repo_path = Actions.sh("git -C #{absolute_path.shellescape} rev-parse --show-toplevel").strip
             repo_pathname = Pathname.new(repo_path)
         else
             app_folder_name ||= params[:app_folder_name]
@@ -33,7 +33,7 @@ module Fastlane
             build_folder_path = build_folder_paths.first
 
             # find the repo root path
-            repo_path = Actions.sh("git -C #{build_folder_path} rev-parse --show-toplevel").strip
+            repo_path = Actions.sh("git -C #{build_folder_path.shellescape} rev-parse --show-toplevel").strip
             repo_pathname = Pathname.new(repo_path)
 
 
@@ -56,7 +56,7 @@ module Fastlane
         expected_changed_files << build_file_path
 
         # get the list of files that have actually changed in our git workdir
-       git_dirty_files = Actions.sh("git -C #{repo_path} diff --name-only HEAD").split("\n") + Actions.sh("git -C #{repo_path} ls-files --other --exclude-standard").split("\n")
+       git_dirty_files = Actions.sh("git -C #{repo_path.shellescape} diff --name-only HEAD").split("\n") + Actions.sh("git -C #{repo_path.shellescape} ls-files --other --exclude-standard").split("\n")
 
        # little user hint
        UI.user_error!("No file changes picked up. Make sure you run the `increment_version_code` action first.") if git_dirty_files.empty?
@@ -87,14 +87,14 @@ module Fastlane
         end
 
         # then create a commit with a message
-        Actions.sh("git -C #{repo_path} add #{git_add_paths.map(&:shellescape).join(' ')}")
+        Actions.sh("git -C #{repo_path.shellescape} add #{git_add_paths.map(&:shellescape).join(' ')}")
 
         begin
             version_code = Actions.lane_context["VERSION_CODE"]
 
             params[:message] ||= (version_code ? "Version Bump to #{version_code}" : "Version Bump")
 
-            Actions.sh("git -C #{repo_path} commit -m '#{params[:message]}'")
+            Actions.sh("git -C #{repo_path.shellescape} commit -m '#{params[:message]}'")
 
             UI.success("Committed \"#{params[:message]}\" 💾.")
         rescue => ex
